@@ -1,4 +1,9 @@
 # LTC_Example
+LTC(Linearly Transformed Cosine)の実装をしたExample Codeです
+技術的詳細は以下の記事に書きました
+https://kinakomoti321.hatenablog.com/entry/2025/01/10/034801
+
+![image](https://github.com/user-attachments/assets/88eef989-8eda-4de6-9495-45350f128ed2)
 
 
 # Reference
