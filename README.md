@@ -5,6 +5,11 @@ https://kinakomoti321.hatenablog.com/entry/2025/01/10/034801
 
 ![image](https://github.com/user-attachments/assets/88eef989-8eda-4de6-9495-45350f128ed2)
 
+# Install
+Releaseからunity packageをインストールして、Unityにインポートしてください
+
+- BRP環境
+- Untiy 2022
 
 # Reference
 - [Heitz, et al. 2016] Real-Time Polygonal-Light Shading with Linearly Transformed Cosines
