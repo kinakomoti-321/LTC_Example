@@ -4,10 +4,15 @@ Shader "LTC/LTC"
     {
         _LTC_LUT ("LTC LUT", 2D) = "black" { }
         _Fresnel_LUT ("Fresnel LUT", 2D) = "black" { }
-        _Roughness ("Roughness", Range(0, 1)) = 0.5
-        _RoughnessTexture ("Roughness Texture", 2D) = "white" { }
+
         _BaseColor ("BaseColor", Color) = (1, 1, 1, 1)
         _BaseColorTexture ("BaseColor Texture", 2D) = "white" { }
+
+        _Roughness ("Roughness", Range(0, 1)) = 0.5
+        _RoughnessTexture ("Roughness Texture", 2D) = "white" { }
+
+        _Metallic ("Metallic", Range(0, 1)) = 1.0
+        _MetallicTexture ("Metallic Texture", 2D) = "white" { }
 
         _QuadLight_V1 ("Quad Light V1", Vector) = (0, 0, 0, 0)
         _QuadLight_V2 ("Quad Light V2", Vector) = (0, 0, 0, 0)
@@ -45,6 +50,9 @@ Shader "LTC/LTC"
 
             float _Roughness;
             sampler2D _RoughnessTexture;
+
+            float _Metallic;
+            sampler2D _MetallicTexture;
 
             float3 _AreaLightColor;
             float _UseAreaLightTexture;
@@ -340,18 +348,6 @@ Shader "LTC/LTC"
                 col += tex2Dgrad(tex, uv, dx * x2, dy * x2) * 0.333;
                 col += tex2Dgrad(tex, uv, dx * x1, dy * x1) * 0.333;
 
-                // float2 duv = 1.1 / _AreaLightTexture_ST.xy;
-                // int kernelSize = 10;
-                // for (int i = 0; i < kernelSize; i++)
-                // {
-                //     for (int j = 0; j < kernelSize; j++)
-                //     {
-                //         float2 uvoffset = duv * (float2(i, j) - 5);
-                //         float radisu = length(uvoffset);
-                //         col += tex2D(tex, uv + uvoffset) * GaussianKernel(length(uvoffset), sigma);
-                //     }
-                // }
-
                 return col;
             }
             
@@ -423,8 +419,12 @@ Shader "LTC/LTC"
 
                 float cosine = dot(i.normal, V);
 
+                float metallic = _Metallic * tex2D(_MetallicTexture, i.texcoord).r;
+
                 float roughness = _Roughness * tex2D(_RoughnessTexture, i.texcoord).r;
-                float3 F0 = _BaseColor.rgb * tex2D(_BaseColorTexture, i.texcoord).rgb;
+
+                float3 basecolor = _BaseColor.rgb * tex2D(_BaseColorTexture, i.texcoord).rgb;
+                float3 F0 = lerp(float3(0.04, 0.04, 0.04), basecolor, metallic);
 
                 float2 lutUV = GetLUT_Texcoord(cosine, roughness);
 
@@ -444,7 +444,9 @@ Shader "LTC/LTC"
                 float4 fresnelLut = tex2D(_Fresnel_LUT, fresnelUV);
                 specular *= F0 * fresnelLut.r + (1.0 - F0) * fresnelLut.g;
 
-                color = specular;
+                float3 diffuse = EvaluateAreaLight(N, V, worldPos, float3x3(1, 0, 0, 0, 1, 0, 0, 0, 1), L) * basecolor;
+
+                color = specular + diffuse * (1.0 - metallic);
                 return fixed4(color, 1.0);
             }
             ENDCG
